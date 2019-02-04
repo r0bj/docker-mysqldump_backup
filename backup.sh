@@ -2,6 +2,7 @@
 
 prometheus_pushgateway_url=${PUSHGATEWAY_URL:-http://127.0.0.1:9091}
 prometheus_job=${PROMETHEUS_JOB:-mysqldump-backup}
+override_hostname=${OVERRIDE_HOSTNAME}
 
 function write_log {
 	echo "`date +'%Y%m%d %H%M%S'`: $1"
@@ -35,7 +36,12 @@ EOF
 	fi
 }
 
-hostname=$(hostname)
+if [ -n "$override_hostname" ]; then
+	hostname=$override_hostname
+else
+	hostname=$(hostname)
+fi
+
 start_timastamp=$(date +'%s')
 
 bash /mysqldump-backup.sh
