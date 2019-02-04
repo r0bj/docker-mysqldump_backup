@@ -8,6 +8,7 @@ mysql_host=${MYSQL_HOST:-127.0.0.1}
 s3_bucket=${S3_BUCKET}
 s3_access_key=${S3_ACCESS_KEY}
 s3_secret_key=${S3_SECRET_KEY}
+override_hostname=${OVERRIDE_HOSTNAME}
 
 function write_log {
         echo "`date +'%Y%m%d %H%M%S'`: $1"
@@ -20,7 +21,12 @@ fi
 
 databases=$(mysql --host=$mysql_host --user=$mysql_user --password=$mysql_password -sse "SHOW DATABASES;" | grep -vE "^(information_schema|performance_schema|sys)$")
 date=$(date +'%Y%m%d')
-hostname=$(hostname)
+
+if [ -n "$override_hostname" ]; then
+	hostname=$override_hostname
+else
+	hostname=$(hostname)
+fi
 
 write_log "Dumping databases: $(echo $databases | tr '\n' ' ')"
 
