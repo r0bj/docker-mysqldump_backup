@@ -34,7 +34,7 @@ for db in $databases; do
 	timestamp=$(date +'%Y%m%d_%H%M%S')
 	filename="${db}-${timestamp}.sql.gz"
 	tmpfile="/tmp/$filename"
-	object="s3://${s3_bucket}/${date}/${hostname}/${filename}"
+	object="s3://${s3_bucket}/${hostname}/${date}/${filename}"
 
 	write_log "Dumping database $db"
 	mysqldump --host=$mysql_host --user=$mysql_user --password=$mysql_password --databases $db | pigz -c > $tmpfile
