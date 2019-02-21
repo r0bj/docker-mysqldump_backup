@@ -57,4 +57,5 @@ if [ "$?" -eq 0 ]; then
 	notify_prometheus 1 $duration
 else
 	notify_prometheus 0
+	exit 1
 fi
