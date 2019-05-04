@@ -37,7 +37,7 @@ for db in $databases; do
 	object="s3://${s3_bucket}/${hostname}/${date}/${filename}"
 
 	write_log "Dumping database $db"
-	mysqldump --host=$mysql_host --user=$mysql_user --password=$mysql_password --single-transaction --databases $db | pigz -c > $tmpfile
+	mysqldump --host=$mysql_host --user=$mysql_user --password=$mysql_password --single-transaction --databases $db | pigz > $tmpfile
 
 	write_log "Uploading database $db"
 	s3cmd --access_key=$s3_access_key --secret_key=$s3_secret_key -m binary/octet-stream put $tmpfile $object
