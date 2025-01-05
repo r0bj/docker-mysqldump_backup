@@ -1,6 +1,6 @@
 #!/bin/bash
 
-prometheus_pushgateway_url=${PUSHGATEWAY_URL:-http://127.0.0.1:9091}
+prometheus_pushgateway_url=${PUSHGATEWAY_URL}
 prometheus_job=${PROMETHEUS_JOB:-mysqldump-backup}
 override_hostname=${OVERRIDE_HOSTNAME}
 auth_user=${BASIC_AUTH_USER}
@@ -14,12 +14,12 @@ function notify_prometheus {
 	local success="$1"
 	local duration="$2"
 
-	if [ -n "$auth_user" ] && [ -n "$auth_password" ]; then
+	if [[ -n "$auth_user" && -n "$auth_password" ]]; then
 		curl_opts="-u ${auth_user}:$auth_password"
 	fi
 
-	if [ -n "$prometheus_pushgateway_url" ] && [ -n "$prometheus_job" ]; then
-		if [ "$success" -eq 1 ]; then
+	if [[ -n "$prometheus_pushgateway_url" && -n "$prometheus_job" ]]; then
+		if [[ "$success" -eq 1 ]]; then
 			write_log "INFO: notify prometheus: backup success; duration: $duration"
 cat <<EOF | curl -v --max-time 60 $curl_opts -s -XPOST --data-binary @- ${prometheus_pushgateway_url}/metrics/job/${prometheus_job}/instance/$hostname
 # HELP mysqldump_backup_duration_seconds Duration of mysqldump backup
@@ -43,7 +43,7 @@ EOF
 	fi
 }
 
-if [ -n "$override_hostname" ]; then
+if [[ -n "$override_hostname" ]]; then
 	hostname=$override_hostname
 else
 	hostname=$(hostname)
@@ -52,7 +52,7 @@ fi
 start_timastamp=$(date +'%s')
 
 bash /mysqldump-backup.sh
-if [ "$?" -eq 0 ]; then
+if [[ "$?" -eq 0 ]]; then
 	duration=$(($(date +'%s') - $start_timastamp))
 	notify_prometheus 1 $duration
 	exit 0

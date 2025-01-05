@@ -14,15 +14,16 @@ function write_log {
         echo "`date +'%Y%m%d %H%M%S'`: $1"
 }
 
-if [ -z "$mysql_password" ] || [ -z "$s3_bucket" ] || [ -z "$s3_access_key" ] || [ -z "$s3_secret_key" ]; then
+if [[ -z "$mysql_password" || -z "$s3_bucket" || -z "$s3_access_key" || -z "$s3_secret_key" ]]; then
         write_log "One or more parameter empty"
         exit 1
 fi
 
-databases=$(mysql --host=$mysql_host --user=$mysql_user --password=$mysql_password -sse "SHOW DATABASES;" | grep -vE "^(information_schema|performance_schema|sys)$")
+export MYSQL_PWD=$mysql_password
+databases=$(mysql --host=$mysql_host --user=$mysql_user -sse "SHOW DATABASES;" | grep -vE "^(information_schema|performance_schema|sys)$")
 date=$(date +'%Y%m%d')
 
-if [ -n "$override_hostname" ]; then
+if [[ -n "$override_hostname" ]]; then
 	hostname=$override_hostname
 else
 	hostname=$(hostname)
@@ -37,9 +38,9 @@ for db in $databases; do
 	object="s3://${s3_bucket}/${hostname}/${date}/${filename}"
 
 	write_log "Dumping database $db"
-	mysqldump --host=$mysql_host --user=$mysql_user --password=$mysql_password --single-transaction --set-gtid-purged=OFF --databases $db | pigz > $tmpfile
+	mysqldump --host=$mysql_host --user=$mysql_user --single-transaction --set-gtid-purged=OFF --databases $db | pigz > $tmpfile
 
 	write_log "Uploading database $db"
-	s3cmd --access_key=$s3_access_key --secret_key=$s3_secret_key -m binary/octet-stream put $tmpfile $object
+	AWS_ACCESS_KEY_ID=$s3_access_key AWS_SECRET_ACCESS_KEY=$s3_secret_key aws s3 cp $tmpfile $object --no-progress
 	rm -f $tmpfile
 done

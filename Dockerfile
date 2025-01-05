@@ -1,26 +1,19 @@
-FROM ubuntu:18.04
+FROM ubuntu:24.04
 
-ENV PERCONA_SERVER_CLIENT_VERSION 8.0.17-8-1.bionic
-ENV S3CMD_VERSION 2.0.2
+# https://docs.aws.amazon.com/cli/latest/userguide/getting-started-version.html
+# https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst
+ENV AWSCLI_VERSION=2.22.28
 
-RUN apt-get update \
-  && apt-get install -y wget curl lsb-release gnupg pigz python3-setuptools \
-  && wget -q https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb \
-  && dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb \
-  && rm -f percona-release_latest.$(lsb_release -sc)_all.deb \
-  && percona-release setup ps80 \
-  && apt-get install -y percona-server-client=$PERCONA_SERVER_CLIENT_VERSION \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && wget -q https://github.com/s3tools/s3cmd/releases/download/v${S3CMD_VERSION}/s3cmd-${S3CMD_VERSION}.tar.gz \
-  && tar xvpzf s3cmd-${S3CMD_VERSION}.tar.gz \
-  && rm -f s3cmd-${S3CMD_VERSION}.tar.gz \
-  && cd s3cmd-${S3CMD_VERSION} \
-  && python3 setup.py install \
-  && cd .. \
-  && rm -rf s3cmd-${S3CMD_VERSION}
+RUN apt-get update && \
+    apt-get install -y curl unzip pigz mysql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -sSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWSCLI_VERSION}.zip -o /tmp/awscliv2.zip && \
+    unzip -q /tmp/awscliv2.zip -d /tmp && \
+    /tmp/aws/install && \
+    rm -rf /tmp/aws /tmp/awscliv2.zip
 
 COPY mysqldump-backup.sh /
 COPY backup.sh /
 
-CMD [ "/backup.sh" ]
+CMD ["/backup.sh"]
