@@ -20,7 +20,7 @@ function notify_prometheus {
 
 	if [[ -n "$prometheus_pushgateway_url" && -n "$prometheus_job" ]]; then
 		if [[ "$success" -eq 1 ]]; then
-			log "Notifying prometheus: backup success; duration: $duration"
+			log "Notifying prometheus: backup success; duration: ${duration}s"
 cat <<EOF | curl -o /dev/null -s -w "URL: %{url_effective}\nRemote IP: %{remote_ip}\nHTTP Code: %{http_code}\n" --max-time 60 $curl_opts -XPOST --data-binary @- ${prometheus_pushgateway_url}/metrics/job/${prometheus_job}/instance/$hostname
 # HELP mysqldump_backup_duration_seconds Duration of mysqldump backup
 # TYPE mysqldump_backup_duration_seconds gauge
