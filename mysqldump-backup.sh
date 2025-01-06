@@ -10,13 +10,13 @@ s3_access_key=${S3_ACCESS_KEY}
 s3_secret_key=${S3_SECRET_KEY}
 override_hostname=${OVERRIDE_HOSTNAME}
 
-function write_log {
-        echo "`date +'%Y%m%d %H%M%S'`: $1"
+function log {
+	echo "`date +'%Y%m%d %H%M%S'`: $1"
 }
 
 if [[ -z "$mysql_password" || -z "$s3_bucket" || -z "$s3_access_key" || -z "$s3_secret_key" ]]; then
-        write_log "One or more parameter empty"
-        exit 1
+	log "One or more parameter empty"
+	exit 1
 fi
 
 export MYSQL_PWD=$mysql_password
@@ -29,7 +29,7 @@ else
 	hostname=$(hostname)
 fi
 
-write_log "Dumping databases: $(echo $databases | tr '\n' ' ')"
+log "Dumping databases: $(echo $databases | tr '\n' ' ')"
 
 for db in $databases; do
 	timestamp=$(date +'%Y%m%d_%H%M%S')
@@ -37,10 +37,13 @@ for db in $databases; do
 	tmpfile="/tmp/$filename"
 	object="s3://${s3_bucket}/${hostname}/${date}/${filename}"
 
-	write_log "Dumping database $db"
+	log "Dumping database $db"
 	mysqldump --host=$mysql_host --user=$mysql_user --single-transaction --set-gtid-purged=OFF --databases $db | pigz > $tmpfile
+	log "Dumping database $db done"
 
-	write_log "Uploading database $db"
+	log "Uploading file $tmpfile to $object"
 	AWS_ACCESS_KEY_ID=$s3_access_key AWS_SECRET_ACCESS_KEY=$s3_secret_key aws s3 cp $tmpfile $object --no-progress
+	log "Uploading file $tmpfile done"
+
 	rm -f $tmpfile
 done

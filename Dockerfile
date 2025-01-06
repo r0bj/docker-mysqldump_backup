@@ -1,8 +1,10 @@
-FROM ubuntu:24.04
+# Update ubuntu image and awscli after docker is upgraded to 20.10.10+
+# https://medium.com/nttlabs/ubuntu-21-10-and-fedora-35-do-not-work-on-docker-20-10-9-1cd439d9921
+FROM ubuntu:18.04
 
 # https://docs.aws.amazon.com/cli/latest/userguide/getting-started-version.html
 # https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst
-ENV AWSCLI_VERSION=2.22.28
+ENV AWSCLI_VERSION=2.0.2
 
 RUN apt-get update && \
   apt-get install -y curl unzip pigz mysql-client && \
