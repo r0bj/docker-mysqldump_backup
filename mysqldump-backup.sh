@@ -20,6 +20,7 @@ if [[ -z "$mysql_password" || -z "$s3_bucket" || -z "$s3_access_key" || -z "$s3_
 fi
 
 export MYSQL_PWD=$mysql_password
+
 databases=$(mysql --host=$mysql_host --user=$mysql_user -sse "SHOW DATABASES;" | grep -vE "^(information_schema|performance_schema|sys)$")
 date=$(date +'%Y%m%d')
 
@@ -30,6 +31,11 @@ else
 fi
 
 log "Dumping databases: $(echo $databases | tr '\n' ' ')"
+
+export AWS_ACCESS_KEY_ID=$s3_access_key
+export AWS_SECRET_ACCESS_KEY=$s3_secret_key
+export AWS_RETRY_MODE=standard
+export AWS_MAX_ATTEMPTS=6
 
 for db in $databases; do
 	timestamp=$(date +'%Y%m%d_%H%M%S')
@@ -42,7 +48,7 @@ for db in $databases; do
 	log "Dumping database $db done"
 
 	log "Uploading file $tmpfile to $object"
-	AWS_ACCESS_KEY_ID=$s3_access_key AWS_SECRET_ACCESS_KEY=$s3_secret_key aws s3 cp $tmpfile $object --no-progress
+	aws s3 cp $tmpfile $object --no-progress
 	log "Uploading file $tmpfile done"
 
 	rm -f $tmpfile
