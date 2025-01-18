@@ -28,16 +28,16 @@ mysqldump_backup_duration_seconds $duration
 # HELP mysqldump_backup_last_success_timestamp_seconds Unixtime mysqldump backup last succeeded
 # TYPE mysqldump_backup_last_success_timestamp_seconds gauge
 mysqldump_backup_last_success_timestamp_seconds $(date +%s.%7N)
-# HELP mysqldump_backup_last_success Success of mysqldump backup
-# TYPE mysqldump_backup_last_success gauge
-mysqldump_backup_last_success 1
+# HELP mysqldump_backup_status Status of mysqldump backup
+# TYPE mysqldump_backup_status gauge
+mysqldump_backup_status 1
 EOF
 		else
 			log "Notifying prometheus: backup failed"
 cat <<EOF | curl -o /dev/null -s -w "URL: %{url_effective}\nRemote IP: %{remote_ip}\nHTTP Code: %{http_code}\n" --max-time 60 $curl_opts -XPOST --data-binary @- ${prometheus_pushgateway_url}/metrics/job/${prometheus_job}/instance/$hostname
-# HELP mysqldump_backup_last_success Success of mysqldump backup
-# TYPE mysqldump_backup_last_success gauge
-mysqldump_backup_last_success 0
+# HELP mysqldump_backup_status Status of mysqldump backup
+# TYPE mysqldump_backup_status gauge
+mysqldump_backup_status 0
 EOF
 		fi
 	fi
