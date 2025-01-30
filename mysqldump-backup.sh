@@ -9,10 +9,10 @@ s3_bucket=${S3_BUCKET}
 s3_access_key=${S3_ACCESS_KEY}
 s3_secret_key=${S3_SECRET_KEY}
 override_hostname=${OVERRIDE_HOSTNAME}
-databases_keyword="--databases"
+databases_parameter="--databases"
 
-if [[ "$USE_DATABASES_KEY_WORD" == "no" ]]; then
-  databases_keyword=""
+if [[ "$OMIT_DATABASES_PARAMETER" == "true" ]]; then
+  databases_parameter=""
 fi
 
 function log {
@@ -49,7 +49,7 @@ for db in $databases; do
 	object="s3://${s3_bucket}/${hostname}/${date}/${filename}"
 
 	log "Dumping database $db"
-	mysqldump --host=$mysql_host --user=$mysql_user --single-transaction --set-gtid-purged=OFF $databases_keyword $db | pigz > $tmpfile
+	mysqldump --host=$mysql_host --user=$mysql_user --single-transaction --set-gtid-purged=OFF $databases_parameter $db | pigz > $tmpfile
 	log "Dumping database $db done"
 
 	log "Uploading file $tmpfile to $object"
